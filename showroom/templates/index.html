@@ -1,0 +1,138 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
+  <title>Tata Showroom · Voice Desk</title>
+  <link rel="stylesheet" href="/static/styles.css?v=calendar-3">
+  <script src="/static/live.js?v=1" defer></script>
+  <script src="/static/app.js?v=live-3" defer></script>
+</head>
+<body>
+  <div class="site-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Tata showroom home">
+        <span class="brand-icon" aria-hidden="true">T</span>
+        <span><strong>Tata Showroom</strong><small>Voice desk</small></span>
+      </a>
+      <nav aria-label="Dashboard">
+        <button type="button" data-view="conversation" aria-current="page">Conversation</button>
+        <button type="button" data-view="crm">CRM</button>
+      </nav>
+      <a class="admin-link" href="{{ rag_admin_url }}" target="_blank" rel="noopener noreferrer">Knowledge admin <span aria-hidden="true">↗</span></a>
+    </header>
+
+    <main>
+      <section id="conversation-view" aria-labelledby="conversation-heading">
+        <div class="page-header">
+          <div>
+            <h1 id="conversation-heading">Showroom assistant</h1>
+            <p>Ask about a vehicle or book a test drive using your laptop mic.</p>
+          </div>
+          <label class="field">Conversation language
+            <select id="language" aria-label="Conversation language">
+              <option value="auto">Auto-detect</option>
+              <option value="en">English</option>
+              <option value="hi">हिंदी</option>
+            </select>
+          </label>
+        </div>
+
+        <div class="workbench">
+          <section class="panel conversation" aria-labelledby="transcript-heading">
+            <header class="panel-header">
+              <div class="panel-title">
+                <h2 id="transcript-heading">Transcript</h2>
+                <span class="state" id="call-state"><span></span> Ready</span>
+                <span class="state" id="model-state" aria-live="polite"><span></span> Checking LFM3</span>
+                <span class="state" id="rag-state" aria-live="polite"><span></span> Checking RAG</span>
+              </div>
+              <label class="toggle"><input type="checkbox" id="speak-replies" checked> Speak replies</label>
+            </header>
+
+            <div id="transcript" class="transcript" aria-live="polite">
+              <div class="empty-message">Start a conversation to see the transcript here.</div>
+            </div>
+            <div id="booking-options" class="booking-options" hidden></div>
+            <div id="confirmed" class="confirmed" hidden></div>
+
+            <div class="controls">
+              <div id="status" class="status" role="status" hidden></div>
+              <label class="field">Voice mode
+                <select id="voice-mode">
+                  <option value="local">Local · offline</option>
+                  <option value="gemini" {% if not gemini_ready %}disabled{% endif %}>Gemini Live · {% if gemini_ready %}online demo{% else %}API key required{% endif %}</option>
+                </select>
+              </label>
+              <p id="cloud-note" class="status" hidden>Microphone audio is sent to Google. Use fictional customer details.</p>
+              <div class="actions">
+                <button class="primary" id="start" type="button">Start conversation</button>
+                <button class="primary" id="record" type="button" hidden>
+                  <svg aria-hidden="true" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round">
+                    <rect x="9" y="2" width="6" height="13" rx="3"></rect><path d="M5 10v2a7 7 0 0 0 14 0v-2M12 19v3m-3 0h6"></path>
+                  </svg>
+                  <span>Start microphone</span>
+                </button>
+                <button class="secondary" id="end" type="button" hidden>End conversation</button>
+              </div>
+              <form id="text-form" class="text-form" hidden>
+                <input aria-label="Type your reply" type="text" id="text-input" autocomplete="off" maxlength="1500" placeholder="Or type your reply…">
+                <button type="submit" class="secondary" id="send">Send</button>
+              </form>
+            </div>
+          </section>
+
+          <aside class="guide" aria-labelledby="examples-heading">
+            <h2 id="examples-heading">Try a showroom request</h2>
+            <p>These examples look up facts in the Tata catalog.</p>
+            <div class="examples">
+              <button type="button" data-example="How many seats does the Tata Safari have?">Ask about Safari seating <span aria-hidden="true">↗</span></button>
+              <button type="button" data-example="टाटा नेक्सन में कितने एयरबैग हैं?">हिंदी में एयरबैग पूछें <span aria-hidden="true">↗</span></button>
+              <button type="button" data-example="I want to book a test drive for the Tata Nexon.">Book a test drive <span aria-hidden="true">↗</span></button>
+            </div>
+            <div class="guide-note">
+              <strong>Conversation records</strong>
+              <p>The CRM saves both speakers’ turns. Use fictional callback numbers during a demo.</p>
+            </div>
+          </aside>
+        </div>
+      </section>
+
+      <section id="crm-view" aria-labelledby="crm-heading" hidden>
+        <div class="page-header">
+          <div><h1 id="crm-heading">Test-drive calendar</h1><p>Appointments, customers and conversations. All times in IST.</p></div>
+          <button type="button" class="secondary" id="refresh">Refresh</button>
+        </div>
+        <div id="crm-status" class="status" role="status" hidden></div>
+        <div class="booking-calendar-layout">
+          <section class="panel" aria-labelledby="calendar-title">
+            <header class="panel-header calendar-toolbar">
+              <button class="secondary" type="button" id="calendar-prev" aria-label="Previous month">&#8592;</button>
+              <h2 id="calendar-title"></h2>
+              <button class="secondary" type="button" id="calendar-next" aria-label="Next month">&#8594;</button>
+              <button class="secondary" type="button" id="calendar-today">Today</button>
+            </header>
+            <div class="calendar-weekdays" aria-hidden="true"><span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span></div>
+            <div id="calendar-days" class="calendar-days" aria-label="Booking dates"></div>
+          </section>
+          <section class="panel" aria-labelledby="booking-day-title">
+            <header class="panel-header"><h2 id="booking-day-title">Appointments</h2><span>IST</span></header>
+            <div id="day-bookings" class="day-bookings" aria-live="polite"></div>
+          </section>
+        </div>
+        <details class="conversation-history"><summary>Browse all conversations</summary><div class="crm-grid">
+          <section class="panel" aria-labelledby="calls-heading">
+            <header class="panel-header"><h2 id="calls-heading">Conversations</h2></header>
+            <div id="call-list" class="call-list"></div>
+          </section>
+          </div></details><dialog id="customer-dialog" aria-labelledby="detail-heading"><section class="crm-detail">
+            <header class="panel-header"><h2 id="detail-heading" tabindex="-1">Customer conversation</h2><button type="button" class="secondary" id="close-customer">Close</button></header>
+            <div id="call-details"><div class="empty-message">Select a conversation to review it.</div></div>
+          </section>
+        </dialog>
+      </section>
+    </main>
+  </div>
+</body>
+</html>

@@ -1,0 +1,8 @@
+.venv/
+__pycache__/
+*.py[cod]
+runtime/
+.env
+.env.*
+/RAG__FORTIVEX_AI/chroma_showroom_db/
+/RAG__FORTIVEX_AI/pdfs/
